@@ -1,0 +1,62 @@
+Museum recipe final check, 2026-11-15
+Revision: Windows commands corrected; UTF-8 explicit for text files and native text output.
+Historical test logs below are preserved; fresh reruns below correspond to the current SHA256 manifest.
+Windows installations, paid APIs, real models, physical devices and Windows SAPI remain UNTESTED.
+
+--- Preserved historical logs ---
+Documentation revision 2026-11-15: README Windows/venv/Whisper paths corrected; prior test logs preserved. Windows installs and model downloads were NOT executed.
+
+Museum recipe check, 2026-11-15
+Python 3.12.14, FFmpeg 7.1.5, Godot 4.6.3 where applicable.
+No physical camera, tablet, microphone, glasses, ASR/OCR/translation models or Windows SAPI were available.
+
+$ python app.py --self-test
+exit=0
+PASS three math templates, coefficients, domain gap, explicit confirmation, unsafe AST rejected
+NOT TESTED: pen hardware; browser rendering; actual handwriting OCR/model quality or performance
+
+
+$ python app.py --doctor
+exit=2
+{
+  "sympy": "1.14.0",
+  "model": "qwen2.5vl:3b",
+  "ollama_available": false,
+  "model_digest": null,
+  "error": "<urlopen error [Errno 111] Connection refused>"
+}
+
+--- Fresh tests after UTF-8/docs revision ---
+$ python app.py --self-test
+exit=0
+PASS three math templates, coefficients, domain gap, explicit confirmation, unsafe AST rejected
+NOT TESTED: pen hardware; browser rendering; actual handwriting OCR/model quality or performance
+
+
+$ python app.py --doctor
+exit=2
+{
+  "sympy": "1.14.0",
+  "model": "qwen2.5vl:3b",
+  "ollama_available": false,
+  "model_digest": null,
+  "error": "<urlopen error [Errno 111] Connection refused>"
+}
+
+
+SHA256 of delivered source/assets:
+5d69f2249ef9a049dd5ce9fdb84f66d22138c0e012337e1559a9f2e7c82f0754  README.md
+4cb8b14bb59a123e953fd92540ab4156165fb6d4bbe8f18bf4e8b8cc6c7f2261  app.py
+6c8ee2e284b3428e2f70fa799bcffec9bc4885b86814ce9f8daac6e4d7adf25d  index.html
+25f9f1fb1988b230147a1d3092d34e09c069eb7a6c6d6df46b3973b9f2d36efc  requirements.txt
+
+ROOT FINAL ARCHIVE RECHECK 2026-11-15
+The final packaged source was extracted to a new temporary directory and the documented smoke command returned exit 0.
+Explicit UTF-8 file/process decoding was added where missing. No physical devices or unlisted external models were tested.
+Command: ["python", "app.py", "--self-test"]
+
+PASS three math templates, coefficients, domain gap, explicit confirmation, unsafe AST rejected
+NOT TESTED: pen hardware; browser rendering; actual handwriting OCR/model quality or performance
+
+FINAL RUNTIME SOURCE SHA256
+4cb8b14bb59a123e953fd92540ab4156165fb6d4bbe8f18bf4e8b8cc6c7f2261  app.py

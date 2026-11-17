@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1814">
+  <meta name="description" content="Интерактивный экспонат: напишите формулу и исследуйте её график.">
+  <title>Умная доска · Экспонат 08</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">К рабочей области</a>
+
+  <header class="topbar">
+    <a class="brand" href="/" title="На главную">
+      <span class="brand-mark" aria-hidden="true">08</span>
+      <span class="brand-copy">
+        <strong>Умная доска</strong>
+        <small>Проектный музей</small>
+      </span>
+    </a>
+
+    <div class="topbar-actions">
+      <div class="system-pill" id="systemPill" title="Состояние локальных сервисов">
+        <span class="status-dot" id="systemDot" aria-hidden="true"></span>
+        <span id="systemText">Подключение…</span>
+      </div>
+      <button class="icon-button" id="fullscreenButton" type="button" aria-label="Открыть на весь экран" title="На весь экран">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+      </button>
+      <button class="icon-button" id="helpButton" type="button" aria-label="Открыть справку" title="Справка">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9.6 9a2.6 2.6 0 1 1 3.2 2.5c-.8.3-.8 1-.8 1.7M12 17.5v.1M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow"><span>Экспонат 08</span> Математика в движении</p>
+        <h1 id="pageTitle">От штриха <em>к графику</em></h1>
+        <p class="intro-copy">Напишите функцию, проверьте распознавание и меняйте коэффициенты. Доска покажет, как каждый из них влияет на форму линии.</p>
+      </div>
+
+      <ol class="progress" aria-label="Этапы работы">
+        <li class="is-active" id="progressWrite">
+          <span class="progress-number">01</span>
+          <span><strong>Напишите</strong><small>пером или мышью</small></span>
+        </li>
+        <li id="progressConfirm">
+          <span class="progress-number">02</span>
+          <span><strong>Проверьте</strong><small>и подтвердите запись</small></span>
+        </li>
+        <li id="progressExplore">
+          <span class="progress-number">03</span>
+          <span><strong>Исследуйте</strong><small>двигайте ползунки</small></span>
+        </li>
+      </ol>
+    </section>
+
+    <section class="workspace" id="workspace" aria-label="Рабочая область умной доски">
+      <article class="panel write-panel" aria-labelledby="writeTitle">
+        <header class="panel-heading">
+          <div>
+            <p class="step-label"><span>1</span> Поле ввода</p>
+            <h2 id="writeTitle">Напишите функцию</h2>
+          </div>
+          <span class="pen-state" id="penState"><i aria-hidden="true"></i> Перо готово</span>
+        </header>
+
+        <div class="canvas-wrap" id="writeWrap">
+          <canvas id="writeCanvas" width="1200" height="420" tabindex="0" aria-label="Поле для рукописного ввода формулы"></canvas>
+          <div class="write-placeholder" id="writePlaceholder" aria-hidden="true">
+            <span>y = x²</span>
+            <small>Пишите крупно в одну строку</small>
+          </div>
+          <span class="corner corner-a" aria-hidden="true"></span>
+          <span class="corner corner-b" aria-hidden="true"></span>
+          <span class="corner corner-c" aria-hidden="true"></span>
+          <span class="corner corner-d" aria-hidden="true"></span>
+        </div>
+
+        <div class="canvas-toolbar">
+          <div class="stroke-tools" aria-label="Инструменты доски">
+            <button class="tool-button" id="undoButton" type="button" disabled>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 7-5 5 5 5M5 12h8a6 6 0 0 1 6 6"/></svg>
+              Отменить
+            </button>
+            <button class="tool-button" id="clearButton" type="button" disabled>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 15 8-8 5 5-8 8H4v-5ZM14 5l2-2 5 5-2 2M13 20h8"/></svg>
+              Очистить
+            </button>
+          </div>
+          <span class="stroke-count" id="strokeCount">Холст пуст</span>
+        </div>
+
+        <button class="primary-action recognize-action" id="recognizeButton" type="button" disabled>
+          <span class="button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 12h8M12 8v8"/></svg>
+          </span>
+          <span><strong>Распознать запись</strong><small id="ocrButtonHint">локальная модель · данные не покидают компьютер</small></span>
+          <svg class="button-arrow" aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+
+        <div class="choice-divider"><span>или выберите пример</span></div>
+
+        <div class="template-list" id="templateList" aria-label="Готовые шаблоны">
+          <button class="template-card is-selected" type="button" data-template="linear">
+            <span class="template-icon linear-icon" aria-hidden="true"><i></i></span>
+            <span><strong>Прямая</strong><small>y = ax + b</small></span>
+          </button>
+          <button class="template-card" type="button" data-template="quadratic">
+            <span class="template-icon quadratic-icon" aria-hidden="true"><i></i></span>
+            <span><strong>Парабола</strong><small>y = ax² + bx + c</small></span>
+          </button>
+          <button class="template-card" type="button" data-template="inverse">
+            <span class="template-icon inverse-icon" aria-hidden="true"><i></i><i></i></span>
+            <span><strong>Гипербола</strong><small>y = a/(x−b) + c</small></span>
+          </button>
+        </div>
+      </article>
+
+      <div class="result-column">
+        <article class="panel formula-panel" aria-labelledby="formulaTitle">
+          <header class="panel-heading compact-heading">
+            <div>
+              <p class="step-label"><span>2</span> Проверка</p>
+              <h2 id="formulaTitle">Это ваша формула?</h2>
+            </div>
+            <span class="candidate-badge" id="candidateBadge">Шаблон</span>
+          </header>
+
+          <div class="formula-field" id="formulaField">
+            <label for="formulaInput">Распознанная запись</label>
+            <div class="formula-input-row">
+              <span aria-hidden="true">y =</span>
+              <input id="formulaInput" value="a*x+b" maxlength="120" autocomplete="off" spellcheck="false" inputmode="text" aria-describedby="formulaHint">
+              <span class="formula-check" id="formulaCheck" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
+              </span>
+            </div>
+            <p id="formulaHint">Можно исправить текст. Допустимы x, a, b, c, числа и + − × ÷ ^.</p>
+          </div>
+
+          <div class="confirm-row">
+            <div class="privacy-note">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5V10Z"/></svg>
+              <span><strong>Безопасное вычисление</strong><small>Код и неизвестные функции блокируются</small></span>
+            </div>
+            <button class="confirm-button" id="confirmButton" type="button">
+              <span>Подтвердить и построить</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </article>
+
+        <article class="panel graph-panel" aria-labelledby="graphTitle">
+          <header class="graph-heading">
+            <div>
+              <p class="step-label"><span>3</span> Исследование</p>
+              <h2 id="graphTitle">График функции</h2>
+            </div>
+            <div class="equation-chip" id="equationChip">y = a·x + b</div>
+          </header>
+
+          <div class="graph-wrap" id="graphWrap">
+            <canvas id="graphCanvas" width="1000" height="540" role="img" aria-label="Координатная плоскость для графика функции"></canvas>
+            <div class="graph-empty" id="graphEmpty">
+              <div class="empty-orbit" aria-hidden="true"><span></span><i></i></div>
+              <strong>График ждёт подтверждения</strong>
+              <small>Проверьте формулу выше и нажмите «Построить»</small>
+            </div>
+            <div class="graph-tooltip" id="graphTooltip" role="status" aria-live="polite"></div>
+          </div>
+
+          <div class="graph-meta">
+            <span><i class="legend-line" aria-hidden="true"></i><b id="graphFormulaLabel">y = a·x + b</b></span>
+            <span id="pointStat">401 точка</span>
+            <span id="gapStat">Разрывов нет</span>
+          </div>
+
+          <div class="controls-heading">
+            <div>
+              <h3>Коэффициенты</h3>
+              <p>Двигайте ползунки — график изменится сразу</p>
+            </div>
+            <button class="reset-coefficients" id="resetCoefficients" type="button">Сбросить</button>
+          </div>
+
+          <div class="coefficient-grid" id="coefficientGrid">
+            <label class="coefficient-card" data-parameter="a">
+              <span class="coefficient-top"><b>a</b><output id="valueA" for="coefficientA">1</output></span>
+              <input id="coefficientA" type="range" min="-10" max="10" step="0.5" value="1" aria-label="Коэффициент a">
+              <span class="range-labels"><small>−10</small><small>0</small><small>10</small></span>
+            </label>
+            <label class="coefficient-card" data-parameter="b">
+              <span class="coefficient-top"><b>b</b><output id="valueB" for="coefficientB">0</output></span>
+              <input id="coefficientB" type="range" min="-10" max="10" step="0.5" value="0" aria-label="Коэффициент b">
+              <span class="range-labels"><small>−10</small><small>0</small><small>10</small></span>
+            </label>
+            <label class="coefficient-card" data-parameter="c">
+              <span class="coefficient-top"><b>c</b><output id="valueC" for="coefficientC">0</output></span>
+              <input id="coefficientC" type="range" min="-10" max="10" step="0.5" value="0" aria-label="Коэффициент c">
+              <span class="range-labels"><small>−10</small><small>0</small><small>10</small></span>
+            </label>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><span class="local-mark" aria-hidden="true"></span> Все вычисления выполняются локально на этом компьютере</p>
+    <button id="newSessionButton" type="button">Начать заново</button>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+    <span class="toast-icon" aria-hidden="true"></span>
+    <span id="toastText"></span>
+    <button id="toastClose" type="button" aria-label="Закрыть сообщение">×</button>
+  </div>
+
+  <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpTitle">
+    <form method="dialog">
+      <header>
+        <div>
+          <p class="eyebrow"><span>Подсказка</span> Как пользоваться</p>
+          <h2 id="helpTitle">Три шага до открытия</h2>
+        </div>
+        <button class="dialog-close" value="close" aria-label="Закрыть">×</button>
+      </header>
+      <ol class="help-steps">
+        <li><span>01</span><div><strong>Напишите функцию</strong><p>Используйте перо, палец или мышь. Лучше писать крупно и в одну строку.</p></div></li>
+        <li><span>02</span><div><strong>Проверьте распознавание</strong><p>Исправьте знаки и степени вручную. Вычисление начнётся только после подтверждения.</p></div></li>
+        <li><span>03</span><div><strong>Измените коэффициенты</strong><p>Наблюдайте, как a, b и c растягивают и перемещают график.</p></div></li>
+      </ol>
+      <div class="syntax-box">
+        <strong>Поддерживаемая запись</strong>
+        <p><code>a*x+b</code> · <code>a*x^2+b*x+c</code> · <code>a/(x-b)+c</code></p>
+        <small>Произвольный код, функции и степени вне диапазона −2…4 блокируются.</small>
+      </div>
+      <div class="shortcut-list">
+        <span><kbd>Ctrl</kbd> + <kbd>Z</kbd> отменить штрих</span>
+        <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> построить</span>
+      </div>
+      <button class="dialog-primary" value="close">Понятно, начать</button>
+    </form>
+  </dialog>
+</body>
+</html>
