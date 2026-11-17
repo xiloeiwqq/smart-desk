@@ -22,6 +22,9 @@ const TEMPLATES = {
 };
 
 const dom = {
+  presentation: $("#presentation"),
+  inputScreen: $("#inputScreen"),
+  graphScreen: $("#graphScreen"),
   systemPill: $("#systemPill"),
   systemText: $("#systemText"),
   writeCanvas: $("#writeCanvas"),
@@ -54,7 +57,8 @@ const dom = {
   helpDialog: $("#helpDialog"),
   helpButton: $("#helpButton"),
   fullscreenButton: $("#fullscreenButton"),
-  progress: [$("#progressWrite"), $("#progressConfirm"), $("#progressExplore")],
+  backButton: $("#backButton"),
+  progress: [$("#progressCompose"), $("#progressExplore")],
 };
 
 const coefficientInputs = {
@@ -164,10 +168,25 @@ function updateEquationLabels() {
 
 
 function setProgress(step) {
+  const visibleStep = step >= 3 ? 2 : 1;
   dom.progress.forEach((item, index) => {
-    item.classList.toggle("is-active", index === step - 1);
-    item.classList.toggle("is-complete", index < step - 1);
+    item.classList.toggle("is-active", index === visibleStep - 1);
+    item.classList.toggle("is-complete", index < visibleStep - 1);
   });
+}
+
+
+function showScreen(screen) {
+  const showGraph = screen === "graph";
+  dom.presentation.dataset.screen = showGraph ? "graph" : "input";
+  dom.inputScreen.toggleAttribute("inert", showGraph);
+  dom.graphScreen.toggleAttribute("inert", !showGraph);
+  dom.inputScreen.setAttribute("aria-hidden", String(showGraph));
+  dom.graphScreen.setAttribute("aria-hidden", String(!showGraph));
+  if (showGraph) {
+    window.requestAnimationFrame(resizeGraphCanvas);
+    window.setTimeout(resizeGraphCanvas, 740);
+  }
 }
 
 
@@ -180,7 +199,7 @@ function showToast(message, type = "info", duration = 4200) {
 }
 
 
-function setGraphEmpty(title = "График ждёт подтверждения", copy = "Проверьте формулу выше и нажмите «Построить»") {
+function setGraphEmpty(title = "График ждёт подтверждения", copy = "Вернитесь к формуле и подтвердите её") {
   $("strong", dom.graphEmpty).textContent = title;
   $("small", dom.graphEmpty).textContent = copy;
   dom.graphEmpty.classList.remove("is-hidden");
@@ -203,7 +222,7 @@ function setConfirmed(confirmed) {
   state.confirmed = confirmed;
   dom.formulaField.classList.toggle("is-confirmed", confirmed);
   dom.confirmButton.classList.toggle("is-confirmed", confirmed);
-  $("span", dom.confirmButton).textContent = confirmed ? "Формула подтверждена" : "Подтвердить и построить";
+  $("span", dom.confirmButton).textContent = confirmed ? "Формула подтверждена" : "Подтвердить и показать график";
 }
 
 
@@ -504,6 +523,7 @@ async function requestPlot({ isConfirmation = false, quiet = false } = {}) {
     updateEquationLabels();
     drawGraph();
     setProgress(3);
+    showScreen("graph");
     if (!quiet) showToast(result.domain_gaps ? "График построен. Разрыв области определения показан пропуском." : "График построен — попробуйте изменить коэффициенты.");
   } catch (error) {
     if (error.name !== "AbortError") {
@@ -515,7 +535,7 @@ async function requestPlot({ isConfirmation = false, quiet = false } = {}) {
   } finally {
     if (sequence === state.plotSequence) {
       dom.confirmButton.disabled = false;
-      $("span", dom.confirmButton).textContent = state.confirmed ? "Формула подтверждена" : "Подтвердить и построить";
+      $("span", dom.confirmButton).textContent = state.confirmed ? "Формула подтверждена" : "Подтвердить и показать график";
     }
   }
 }
@@ -729,7 +749,7 @@ function resetSession() {
   setConfirmed(false);
   clearGraph();
   setProgress(1);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  showScreen("input");
   showToast("Доска очищена. Можно начать новый эксперимент.");
 }
 
@@ -779,6 +799,11 @@ dom.resetCoefficients.addEventListener("click", () => {
 
 dom.graphCanvas.addEventListener("pointermove", graphPointerMove);
 dom.graphCanvas.addEventListener("pointerleave", hideGraphTooltip);
+dom.backButton.addEventListener("click", () => {
+  showScreen("input");
+  setProgress(1);
+  window.setTimeout(() => dom.formulaInput.focus(), 120);
+});
 dom.newSessionButton.addEventListener("click", resetSession);
 dom.toastClose.addEventListener("click", () => dom.toast.classList.remove("is-visible"));
 
@@ -818,5 +843,6 @@ renderWriting();
 updateCoefficientUI();
 updateParameterCards(TEMPLATES.linear.parameters);
 setProgress(1);
+showScreen("input");
 resizeGraphCanvas();
 checkSystem();
