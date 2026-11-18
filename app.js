@@ -75,8 +75,7 @@ const coefficientOutputs = {
 
 const state = {
   strokes: [],
-  activeStroke: null,
-  pointerId: null,
+  activeStrokes: new Map(),
   confirmed: false,
   points: [],
   graphResponse: null,
@@ -334,11 +333,12 @@ function renderWriting() {
 
 function beginStroke(event) {
   if (event.button !== undefined && event.button !== 0) return;
+  if (state.activeStrokes.has(event.pointerId)) return;
   event.preventDefault();
   dom.writeCanvas.setPointerCapture(event.pointerId);
-  state.pointerId = event.pointerId;
-  state.activeStroke = [canvasPoint(event)];
-  state.strokes.push(state.activeStroke);
+  const stroke = [canvasPoint(event)];
+  state.activeStrokes.set(event.pointerId, stroke);
+  state.strokes.push(stroke);
   state.inputRevision += 1;
   if (state.ocrController) state.ocrController.abort();
   invalidateConfirmation();
@@ -349,20 +349,20 @@ function beginStroke(event) {
 
 
 function extendStroke(event) {
-  if (state.pointerId !== event.pointerId || !state.activeStroke) return;
+  const stroke = state.activeStrokes.get(event.pointerId);
+  if (!stroke) return;
   event.preventDefault();
   const samples = event.getCoalescedEvents ? event.getCoalescedEvents() : [event];
-  for (const sample of samples) state.activeStroke.push(canvasPoint(sample));
+  for (const sample of samples) stroke.push(canvasPoint(sample));
   renderWriting();
 }
 
 
 function endStroke(event) {
-  if (state.pointerId !== event.pointerId) return;
-  state.pointerId = null;
-  state.activeStroke = null;
-  dom.penState.classList.remove("is-drawing");
-  dom.penState.lastChild.textContent = " Перо готово";
+  if (!state.activeStrokes.delete(event.pointerId)) return;
+  const isDrawing = state.activeStrokes.size > 0;
+  dom.penState.classList.toggle("is-drawing", isDrawing);
+  dom.penState.lastChild.textContent = isDrawing ? " Рисуем…" : " Перо готово";
   renderWriting();
 }
 
@@ -378,9 +378,15 @@ function undoStroke() {
 
 
 function clearWriting(invalidate = true) {
+  for (const pointerId of state.activeStrokes.keys()) {
+    if (dom.writeCanvas.hasPointerCapture(pointerId)) {
+      dom.writeCanvas.releasePointerCapture(pointerId);
+    }
+  }
   state.strokes = [];
-  state.activeStroke = null;
-  state.pointerId = null;
+  state.activeStrokes.clear();
+  dom.penState.classList.remove("is-drawing");
+  dom.penState.lastChild.textContent = " Перо готово";
   state.inputRevision += 1;
   if (state.ocrController) state.ocrController.abort();
   if (invalidate) invalidateConfirmation();
@@ -470,6 +476,7 @@ function applyTemplate(id) {
   const template = TEMPLATES[id];
   if (!template) return;
   dom.formulaInput.value = template.formula;
+  dom.formulaInput.blur();
   selectTemplateVisual(id);
   updateSourceBadge("template");
   resetCoefficientValues();
@@ -477,7 +484,6 @@ function applyTemplate(id) {
   state.formulaRevision += 1;
   invalidateConfirmation({ advance: false });
   setProgress(2);
-  dom.formulaInput.focus();
 }
 
 
@@ -758,6 +764,7 @@ dom.writeCanvas.addEventListener("pointerdown", beginStroke);
 dom.writeCanvas.addEventListener("pointermove", extendStroke);
 dom.writeCanvas.addEventListener("pointerup", endStroke);
 dom.writeCanvas.addEventListener("pointercancel", endStroke);
+dom.writeCanvas.addEventListener("lostpointercapture", endStroke);
 dom.undoButton.addEventListener("click", undoStroke);
 dom.clearButton.addEventListener("click", () => clearWriting(true));
 dom.recognizeButton.addEventListener("click", recognizeWriting);
